@@ -19,5 +19,5 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
           registry: docker.pkg.github.com
-          repository: picotorrent/api/toad
+          repository: picotorrent/api
           tag_with_ref: true

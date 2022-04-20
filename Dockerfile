@@ -1,16 +1,29 @@
-FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build-env
+##
+## Build
+##
+FROM golang:1.18-buster AS build
+
 WORKDIR /app
 
-# Copy csproj and restore as distinct layers
-COPY *.csproj ./
-RUN dotnet restore
+COPY go.mod ./
+COPY go.sum ./
+RUN go mod download
 
-# Copy everything else and build
-COPY . ./
-RUN dotnet publish -c Release -o out
+COPY *.go ./
 
-# Build runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:5.0
-WORKDIR /app
-COPY --from=build-env /app/out .
-ENTRYPOINT ["dotnet", "PicoTorrent.API.dll"]
+RUN go build -o /picotorrent-http-api
+
+##
+## Deploy
+##
+FROM gcr.io/distroless/base-debian10
+
+WORKDIR /
+
+COPY --from=build /picotorrent-http-api /picotorrent-http-api
+
+EXPOSE 3000
+
+USER nonroot:nonroot
+
+ENTRYPOINT ["/picotorrent-http-api"]
